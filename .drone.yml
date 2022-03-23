@@ -1,0 +1,98 @@
+kind: pipeline
+type: kubernetes
+name: deploy-develop
+
+steps:  
+- name: Deploy Single
+  image: alpine
+  environment:
+    TF_VAR_client_certificate:
+      from_secret: TF_VAR_client_certificate
+    TF_VAR_client_key:
+      from_secret: TF_VAR_client_key
+    TF_VAR_cluster_ca_certificate:
+      from_secret: TF_VAR_cluster_ca_certificate
+    
+  commands:
+  - apk --update add curl openssh openssh-client
+  - curl --silent --output terraform.zip "https://releases.hashicorp.com/terraform/1.1.7/terraform_1.1.7_linux_amd64.zip"
+  - unzip terraform.zip ; rm -f terraform.zip; chmod +x terraform
+  - mkdir -p ${HOME}/bin ; export PATH=${PATH}:${HOME}/bin; mv terraform ${HOME}/bin/
+  - ls -lR .
+  - cd live
+  - terraform -v
+  - terraform init 
+  - terraform validate
+  - terraform plan -var-file="../environments/develop.tfvars"
+  - terraform apply -var-file="../environments/develop.tfvars" -auto-approve  
+  when:
+    branch:
+    - develop
+    event:
+    - push
+---
+kind: pipeline
+type: kubernetes
+name: deploy-staging
+
+steps:  
+- name: Deploy Single
+  image: alpine
+  environment:
+    TF_VAR_client_certificate:
+      from_secret: TF_VAR_client_certificate
+    TF_VAR_client_key:
+      from_secret: TF_VAR_client_key
+    TF_VAR_cluster_ca_certificate:
+      from_secret: TF_VAR_cluster_ca_certificate
+    
+  commands:
+  - apk --update add curl openssh openssh-client
+  - curl --silent --output terraform.zip "https://releases.hashicorp.com/terraform/1.1.7/terraform_1.1.7_linux_amd64.zip"
+  - unzip terraform.zip ; rm -f terraform.zip; chmod +x terraform
+  - mkdir -p ${HOME}/bin ; export PATH=${PATH}:${HOME}/bin; mv terraform ${HOME}/bin/
+  - ls -lR .
+  - cd live
+  - terraform -v
+  - terraform init 
+  - terraform validate
+  - terraform plan -var-file="../environments/staging.tfvars"
+  - terraform apply -var-file="../environments/staging.tfvars" -auto-approve  
+  when:
+    branch:
+    - staging
+    event:
+    - push
+---
+kind: pipeline
+type: kubernetes
+name: deploy-production
+
+steps:  
+- name: Deploy Single
+  image: alpine
+  environment:
+    TF_VAR_client_certificate:
+      from_secret: TF_VAR_client_certificate
+    TF_VAR_client_key:
+      from_secret: TF_VAR_client_key
+    TF_VAR_cluster_ca_certificate:
+      from_secret: TF_VAR_cluster_ca_certificate
+    
+  commands:
+  - apk --update add curl openssh openssh-client
+  - curl --silent --output terraform.zip "https://releases.hashicorp.com/terraform/1.1.7/terraform_1.1.7_linux_amd64.zip"
+  - unzip terraform.zip ; rm -f terraform.zip; chmod +x terraform
+  - mkdir -p ${HOME}/bin ; export PATH=${PATH}:${HOME}/bin; mv terraform ${HOME}/bin/
+  - ls -lR .
+  - cd live
+  - terraform -v
+  - terraform init 
+  - terraform validate
+  - terraform plan -var-file="../environments/production.tfvars"
+  - terraform apply -var-file="../environments/production.tfvars" -auto-approve  
+  when:
+    branch:
+    - production
+    event:
+    - push
